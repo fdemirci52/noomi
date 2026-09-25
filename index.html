@@ -2,33 +2,407 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Noomi</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Noomi — One pick for tonight</title>
+<meta name="description" content="Noomi learns your taste and hands you one film or show at a time, with a sentence on why it fits you and where to watch it tonight. Coming to iPhone.">
+<meta property="og:title" content="Noomi — Stop scrolling. One pick for tonight.">
+<meta property="og:description" content="One film or show at a time, picked for your taste, with a reason and where to watch it. Coming to iPhone.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://noomiapp.site/">
+<meta property="og:image" content="https://noomiapp.site/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#F5F4F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F0E0C" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23232019'/%3E%3Cellipse cx='23' cy='32' rx='6' ry='7' fill='%23fff'/%3E%3Cellipse cx='41' cy='32' rx='6' ry='7' fill='%23fff'/%3E%3C/svg%3E">
 <style>
-  :root { color-scheme: light dark; --bg: #F5F4F1; --ink: #1c1b19; --sub: #6b6862; }
-  @media (prefers-color-scheme: dark) { :root { --bg: #0F0E0C; --ink: #f2f0ec; --sub: #a29e97; } }
-  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--ink);
-         font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 32rem; padding: 2rem; text-align: center; }
-  h1 { margin: 0 0 1rem; font-size: .8rem; letter-spacing: .25em; color: var(--sub); }
-  p { margin: 0; font-size: 1.3rem; }
-  h2 { margin: 2.5rem 0 .5rem; font-size: .8rem; letter-spacing: .25em; color: var(--sub); font-weight: 600; }
-  .support { font-size: 1rem; }
-  .support a { color: inherit; }
-  .fine { margin-top: 2rem; font-size: .9rem; color: var(--sub); }
-  .fine a { color: inherit; }
+  :root{
+    --bg:#F5F4F1; --card:#FFFFFF; --fill:#ECEAE4; --ink:#232019; --sub:#6E6959;
+    --line:#D9D6CE; --accent:#2F5AF0; --hi:#FFE862; --on-hi:#232019;
+    --night:#0F0E0C; --night-card:#1D1B18; --night-ink:#F0EEE8; --night-sub:#A19D93; --night-line:#3B3831;
+    --shadow-phone: 0 60px 90px -40px rgba(35,32,25,.55), 0 24px 40px -24px rgba(35,32,25,.35);
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --wrap: 1160px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0F0E0C; --card:#1D1B18; --fill:#262420; --ink:#F0EEE8; --sub:#A19D93;
+      --line:#3B3831; --accent:#93A8FF; --hi:#E8CE45;
+      --night:#1A1916; --night-card:#24221E;
+      --shadow-phone: 0 60px 90px -40px rgba(0,0,0,.8), 0 24px 40px -24px rgba(0,0,0,.6);
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--font);
+       -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  a{color:inherit}
+  img{max-width:100%;display:block}
+  .wrap{max-width:var(--wrap);margin:0 auto;padding-inline:24px}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+
+  /* ---------- Noomi ---------- */
+  .noomi{--s:40px;display:block;width:var(--s);height:var(--s);border-radius:50%;background:#232019;position:relative;flex:none}
+  .noomi::before,.noomi::after{content:"";position:absolute;top:36%;width:24%;height:27%;border-radius:50%;background:#fff;
+       animation:blink 5.5s infinite;transform-origin:50% 50%}
+  .noomi::before{left:24%} .noomi::after{right:24%}
+  @keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.12)}}
+  @media (prefers-color-scheme: dark){ .noomi{background:#F0EEE8} .noomi::before,.noomi::after{background:#0F0E0C} }
+  .on-night .noomi{background:#F0EEE8} .on-night .noomi::before,.on-night .noomi::after{background:#0F0E0C}
+
+  /* ---------- Nav ---------- */
+  .nav{position:sticky;top:0;z-index:30;padding-top:env(safe-area-inset-top,0px);
+       background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);
+       border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+  .nav .wrap{display:flex;align-items:center;gap:14px;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;font-size:19px;letter-spacing:-.02em}
+  .brand .noomi{--s:30px}
+  .nav-links{margin-left:auto;display:flex;gap:26px;font-size:15px;color:var(--sub)}
+  .nav-links a{text-decoration:none} .nav-links a:hover{color:var(--ink)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 20px;border-radius:999px;border:0;
+       background:var(--ink);color:var(--bg);font:600 15px/1 var(--font);letter-spacing:-.01em;text-decoration:none;cursor:pointer;
+       transition:transform .15s ease, opacity .15s ease}
+  .btn:hover{transform:translateY(-1px)} .btn:active{transform:none;opacity:.85}
+  .nav .btn{height:38px;padding:0 16px;font-size:14px}
+  @media (max-width:760px){ .nav-links{display:none} .nav .btn{margin-left:auto} }
+
+  /* ---------- Phone mockup ---------- */
+  .phone{--w:300px;width:var(--w);max-width:100%;padding:calc(var(--w)*.033);border-radius:calc(var(--w)*.165);position:relative;
+         background:linear-gradient(150deg,#4a4843 0%,#1b1a18 22%,#121110 60%,#34322e 100%);
+         box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 0 0 calc(var(--w)*.011) #0a0a09,var(--shadow-phone)}
+  .phone::before{content:"";position:absolute;right:calc(var(--w)*-.009);top:27%;width:calc(var(--w)*.012);height:15%;border-radius:0 3px 3px 0;background:#2c2a27}
+  .phone::after{content:"";position:absolute;left:calc(var(--w)*-.009);top:22%;width:calc(var(--w)*.012);height:22%;border-radius:3px 0 0 3px;
+         background:linear-gradient(#2c2a27 0 38%,transparent 38% 46%,#2c2a27 46% 100%)}
+  .phone img{width:100%;height:auto;aspect-ratio:720/1565;border-radius:calc(var(--w)*.132);background:#e9e6df}
+
+  /* ---------- Hero ---------- */
+  .hero{padding-block:48px 40px;overflow-x:clip}
+  .hero .wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--sub)}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  h1{font-size:clamp(44px,6.4vw,82px);line-height:.98;letter-spacing:-.045em;margin:18px 0 22px;font-weight:800;text-wrap:balance}
+  h1 .soft{color:var(--sub)}
+  .lede{font-size:clamp(18px,2vw,21px);line-height:1.5;color:var(--sub);max-width:31em;margin:0 0 30px}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .form{display:flex;gap:8px;max-width:470px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px;
+        box-shadow:0 10px 30px -18px rgba(35,32,25,.35)}
+  .form input{flex:1;min-width:0;border:0;background:transparent;font:400 16px/1 var(--font);color:var(--ink);padding:0 16px;height:46px}
+  .form input::placeholder{color:var(--sub)} .form input:focus{outline:none}
+  .form:focus-within{border-color:var(--ink)}
+  .form .btn{height:46px}
+  .bh{max-width:470px;min-height:58px}
+  .cta .bh{margin:0 auto}
+  .note{font-size:14px;color:var(--sub);margin:12px 0 0 18px}
+  .note.ok{color:var(--ink);font-weight:600}
+  @media (max-width:460px){ .form{flex-direction:column;border-radius:22px;padding:8px} .form .btn{width:100%} .note{margin-left:6px} }
+
+  .stage{position:relative;height:720px}
+  .stage .phone{position:absolute}
+  .stage .back{--w:270px;left:0;top:56px;transform:rotate(-7deg)}
+  .stage .front{--w:310px;right:0;top:8px;transform:rotate(3.5deg)}
+  .bubble{position:absolute;display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:22px;
+          padding:12px 18px 12px 12px;box-shadow:0 18px 40px -20px rgba(35,32,25,.45);font-weight:600;font-size:15px;letter-spacing:-.01em;z-index:3}
+  .bubble .noomi{--s:36px}
+  .stage .bubble{left:-2%;top:150px}
+  .tag{position:absolute;z-index:3;left:4%;top:470px;background:var(--hi);color:var(--on-hi);border-radius:14px;padding:10px 14px;
+       font-size:13.5px;font-weight:700;line-height:1.25;box-shadow:0 14px 30px -16px rgba(35,32,25,.5);transform:rotate(-3deg)}
+  .tag small{display:block;font-weight:500;opacity:.8}
+  @media (max-width:960px){
+    .hero .wrap{grid-template-columns:1fr}
+    .stage{height:700px;max-width:540px;margin:10px auto 0;width:100%}
+  }
+  @media (max-width:520px){
+    .stage{height:560px}
+    .stage .back{--w:220px;left:0} .stage .front{--w:244px;right:0}
+    .stage .bubble{left:0;top:auto;bottom:0;font-size:14px}
+    .tag{left:0;top:370px}
+  }
+
+  /* ---------- Statement ---------- */
+  .statement{padding-block:90px 70px}
+  .statement p{font-size:clamp(30px,4.6vw,56px);line-height:1.08;letter-spacing:-.035em;font-weight:700;margin:0;max-width:17em;text-wrap:balance}
+  .statement p span{color:var(--sub)}
+  .statement .by{display:flex;align-items:center;gap:12px;margin-top:28px;font-size:16px;color:var(--sub)}
+
+  /* ---------- Feature rows ---------- */
+  section{scroll-margin-top:80px}
+  .feature{padding-block:80px}
+  .feature .wrap{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  .feature.flip .copy{order:2}
+  .feature .wrap > *,.hero .wrap > *{min-width:0}
+  .kicker{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+  h2{font-size:clamp(34px,4.4vw,54px);line-height:1.02;letter-spacing:-.04em;margin:0 0 20px;font-weight:800;text-wrap:balance}
+  .copy p{font-size:19px;color:var(--sub);margin:0 0 18px;max-width:30em}
+  .copy p b{color:var(--ink);font-weight:600}
+  .points{list-style:none;padding:0;margin:26px 0 0;display:grid;gap:14px}
+  .points li{position:relative;padding-left:38px;font-size:16.5px;line-height:1.45}
+  .points li::before{content:"";position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;background:var(--fill) center/12px no-repeat;
+     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.2 2.2 4.8-5' fill='none' stroke='%23232019' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  .visual{display:flex;justify-content:center;gap:22px;align-items:flex-start}
+  .visual .phone{--w:290px}
+  .visual.pair .phone{--w:262px}
+  .visual.pair .phone:last-child{margin-top:64px}
+  @media (max-width:960px){
+    .feature .wrap{grid-template-columns:1fr;gap:44px}
+    .feature.flip .copy{order:0}
+  }
+  @media (max-width:620px){
+    .visual.pair .phone{--w:calc((100vw - 60px) / 2)}
+    .visual.pair .phone:last-child{margin-top:40px}
+    .visual{gap:12px}
+  }
+
+  /* ---------- Match board ---------- */
+  .match{padding-block:30px 90px}
+  .board{background:var(--card);border:1px solid var(--line);border-radius:32px;padding:clamp(28px,5vw,56px);
+         display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center}
+  .big{font-size:clamp(96px,16vw,190px);line-height:.85;letter-spacing:-.06em;font-weight:800;margin:0}
+  .big span{font-size:.42em;letter-spacing:-.03em;color:var(--sub);vertical-align:.95em;margin-left:.06em}
+  .rows{display:grid;gap:0}
+  .row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .row b{font-size:18px;letter-spacing:-.01em;font-weight:650}
+  .row small{display:block;color:var(--sub);font-size:14px;margin-top:2px}
+  .pill{background:var(--ink);color:var(--bg);font-weight:700;font-size:14px;border-radius:999px;padding:7px 13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .board .fine{font-size:14px;color:var(--sub);margin:22px 0 0}
+  @media (max-width:860px){ .board{grid-template-columns:1fr;gap:28px} }
+
+  /* ---------- Night band (Ask) ---------- */
+  .on-night{background:var(--night);color:var(--night-ink)}
+  .on-night .copy p,.on-night .sub{color:var(--night-sub)}
+  .on-night .copy p b{color:var(--night-ink)}
+  .on-night .kicker{color:#93A8FF}
+  .on-night .points li::before{background-color:var(--night-card);
+     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.2 2.2 4.8-5' fill='none' stroke='%23F0EEE8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  .on-night .phone{--shadow-phone:0 60px 90px -40px rgba(0,0,0,.9),0 24px 40px -24px rgba(0,0,0,.7)}
+  .typed{display:inline-block;background:#F0EEE8;color:#0F0E0C;border-radius:20px 20px 6px 20px;padding:14px 20px;font-size:19px;font-weight:600;
+         letter-spacing:-.01em;margin:6px 0 26px;max-width:26em}
+
+  /* ---------- Quote (You) ---------- */
+  .quote{font-size:clamp(24px,2.8vw,32px);line-height:1.22;letter-spacing:-.025em;font-weight:650;margin:0 0 20px;color:var(--ink);max-width:22em}
+  .quote::before{content:"“";color:var(--sub)} .quote::after{content:"”";color:var(--sub)}
+
+  /* ---------- Steps ---------- */
+  .steps{padding-block:90px}
+  .steps h2{margin-bottom:40px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:28px}
+  .step .n{width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:700;font-size:15px;margin-bottom:22px}
+  .step h3{font-size:21px;letter-spacing:-.02em;margin:0 0 8px}
+  .step p{margin:0;color:var(--sub);font-size:16px}
+  @media (max-width:860px){ .grid3{grid-template-columns:1fr} }
+
+  /* ---------- Final CTA ---------- */
+  .cta{padding-block:100px;text-align:center}
+  .cta .noomi{--s:84px;margin:0 auto 30px}
+  .cta h2{max-width:14em;margin-inline:auto}
+  .cta .lede{margin-inline:auto;color:var(--night-sub)}
+  .cta .form{margin:0 auto;background:var(--night-card);border-color:var(--night-line)}
+  .cta .form input{color:var(--night-ink)} .cta .form input::placeholder{color:var(--night-sub)}
+  .cta .form:focus-within{border-color:var(--night-ink)}
+  .cta .btn{background:#F0EEE8;color:#0F0E0C}
+  .cta .note{margin-left:0;color:var(--night-sub)} .cta .note.ok{color:var(--night-ink)}
+  .socials{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:40px}
+  .socials a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;border:1px solid var(--night-line);border-radius:999px;padding:10px 16px;
+             font-size:15px;color:var(--night-ink)}
+  .socials a:hover{border-color:var(--night-sub)}
+  .socials span{color:var(--night-sub)}
+
+  /* ---------- Footer ---------- */
+  footer{padding-block:48px 64px;font-size:14px;color:var(--sub);border-top:1px solid var(--line)}
+  footer .wrap{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start}
+  footer nav{display:flex;gap:22px;flex-wrap:wrap}
+  footer a{text-decoration:none} footer a:hover{color:var(--ink)}
+  footer .attr{grid-column:1/-1;max-width:60em;font-size:13px;line-height:1.5}
+  @media (max-width:620px){ footer .wrap{grid-template-columns:1fr} }
+
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
 </style>
 </head>
 <body>
-<main>
-  <h1>NOOMI</h1>
-  <p>Movies &amp; TV picks that learn your taste.</p>
 
-  <h2>SUPPORT</h2>
-  <p class="support">Need help, hit a bug, or want a title added?<br>
-  Write to <a href="mailto:hello@noomiapp.site">hello@noomiapp.site</a> and a real person will answer.</p>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Noomi home"><span class="noomi" aria-hidden="true"></span>Noomi</a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#swipe">How it picks</a>
+      <a href="#ask">Ask</a>
+      <a href="#shelves">Shelves</a>
+    </nav>
+    <a class="btn" href="#join">Join the waitlist</a>
+  </div>
+</header>
 
-  <p class="fine"><a href="legal/privacy-policy.html">Privacy</a> · <a href="legal/terms-of-use.html">Terms</a></p>
+<main id="top">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow"><span class="dot"></span>For iPhone · Launching late October</span>
+        <h1>Stop scrolling. <span class="soft">One pick for tonight.</span></h1>
+        <p class="lede">Noomi learns your taste and hands you <b>one film or show at a time</b> — with a sentence on why it's for you, and where you can watch it tonight.</p>
+        <div class="bh"><script async src="https://subscribe-forms.beehiiv.com/v3/loader.js" data-beehiiv-form="7082cfde-5be8-4d81-8b94-feb2242fc34f"></script></div>
+        <p class="note">One email when Noomi is out. Nothing else.</p>
+      </div>
+
+      <div class="stage" aria-hidden="true">
+        <div class="phone back"><img src="assets/swipe-dark.webp" alt="" width="720" height="1565"></div>
+        <div class="phone front"><img src="assets/swipe-light.webp" alt="" width="720" height="1565" fetchpriority="high"></div>
+        <div class="bubble"><span class="noomi"></span>What are we watching today?</div>
+        <div class="tag">Why it's for you →<small>one sentence, every pick</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Statement -->
+  <section class="statement">
+    <div class="wrap">
+      <p>You spend more of the evening deciding <span>than watching.</span> Noomi ends that.</p>
+      <div class="by"><span class="noomi" style="--s:32px"></span>Built by one person who got tired of scrolling three apps every night.</div>
+    </div>
+  </section>
+
+  <!-- Swipe / detail -->
+  <section class="feature" id="swipe">
+    <div class="wrap">
+      <div class="copy">
+        <p class="kicker">Swipe</p>
+        <h2>One title. Full screen. A reason.</h2>
+        <p>No grid, no endless rows. Noomi shows you <b>one pick</b>, tells you in a single sentence why it fits you, and which of your services has it.</p>
+        <ul class="points">
+          <li>Pace, complexity and mood at a glance — slow burn or fast, simple or tangled.</li>
+          <li>Who it's for tonight: alone, with friends, with family.</li>
+          <li>Where to watch, on the services you actually pay for.</li>
+        </ul>
+      </div>
+      <div class="visual">
+        <div class="phone"><img src="assets/detail.webp" alt="Noomi title page for The Handmaiden: 86% Match, on Amazon Prime Video, with pace, complexity and tone bars" width="720" height="1565" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Match -->
+  <section class="match">
+    <div class="wrap">
+      <div class="board">
+        <div>
+          <p class="kicker">Match</p>
+          <p class="big">86<span>%</span></p>
+          <h2 style="margin-top:22px">Your score, not the crowd's.</h2>
+          <p style="color:var(--sub);font-size:19px;margin:0;max-width:26em">After eight ratings, every film and show carries a Match figure calculated for <b style="color:var(--ink)">your</b> taste — not a public average that says nothing about whether you'll like it.</p>
+        </div>
+        <div>
+          <div class="rows">
+            <div class="row"><div><b>Se7en</b><small>The canon you haven't seen</small></div><span class="pill">88% Match</span></div>
+            <div class="row"><div><b>The Handmaiden</b><small>Hidden gems · on Prime Video</small></div><span class="pill">86% Match</span></div>
+            <div class="row"><div><b>Vertigo</b><small>The canon you haven't seen</small></div><span class="pill">83% Match</span></div>
+            <div class="row"><div><b>Memento</b><small>Tonight's pick · on Netflix</small></div><span class="pill">82% Match</span></div>
+          </div>
+          <p class="fine">Real scores from one Noomi profile. Yours will look different — that's the point.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ask -->
+  <section class="feature flip on-night" id="ask">
+    <div class="wrap">
+      <div class="copy">
+        <p class="kicker">Ask</p>
+        <h2>Just say what kind of night it is.</h2>
+        <span class="typed">Something slow and beautiful, under two hours, nothing supernatural.</span>
+        <p>Noomi already knows your taste. Say the mood, the time you have, who's on the couch — and get a <b>short, honest answer</b> instead of a hundred results.</p>
+        <ul class="points">
+          <li>Every pick comes with its reason, in plain words.</li>
+          <li>It keeps your limits: runtime, tone, the things you don't want.</li>
+        </ul>
+      </div>
+      <div class="visual pair">
+        <div class="phone"><img src="assets/ask-start.webp" alt="Noomi asks: What are we watching today? with suggested prompts" width="720" height="1565" loading="lazy"></div>
+        <div class="phone"><img src="assets/ask-answer.webp" alt="Noomi's answer to a request for something slow and beautiful under two hours, with reasons for each film" width="720" height="1565" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shelves -->
+  <section class="feature" id="shelves">
+    <div class="wrap">
+      <div class="copy">
+        <p class="kicker">Discover</p>
+        <h2>Shelves that mean something.</h2>
+        <p>Every title in the catalogue — <b>more than 46,000 films and shows</b> — carries a written taste profile. That's what lets Noomi build shelves you'd actually browse.</p>
+        <ul class="points">
+          <li><b>Hidden gems</b> — quietly excellent, barely watched.</li>
+          <li><b>The canon you haven't seen</b> — landmarks you haven't rated yet.</li>
+          <li><b>One season, that's it</b> — the whole story, no six-year commitment.</li>
+        </ul>
+      </div>
+      <div class="visual pair">
+        <div class="phone"><img src="assets/hidden-gems.webp" alt="Hidden gems shelf with Match scores on each poster" width="720" height="1565" loading="lazy"></div>
+        <div class="phone"><img src="assets/discover.webp" alt="Discover tab with trending titles and more picks" width="720" height="1565" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- You -->
+  <section class="feature flip" id="you">
+    <div class="wrap">
+      <div class="copy">
+        <p class="kicker">You</p>
+        <h2>Noomi gets to know you.</h2>
+        <p class="quote">You're drawn to stories about people finding each other across time or circumstance.</p>
+        <p>Rate a handful of titles and Noomi writes back what it's learned — in words, not charts. The more you swipe, the sharper the picks.</p>
+      </div>
+      <div class="visual">
+        <div class="phone"><img src="assets/you.webp" alt="Noomi's written taste portrait on the You tab" width="720" height="1565" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Steps -->
+  <section class="steps">
+    <div class="wrap">
+      <p class="kicker">How it works</p>
+      <h2>Three minutes to your first pick.</h2>
+      <div class="grid3">
+        <div class="step"><div class="n">1</div><h3>Rate eight you know</h3><p>Films and shows you've already seen. No quiz, no homework.</p></div>
+        <div class="step"><div class="n">2</div><h3>Swipe your picks</h3><p>One at a time, each with a reason and where to watch it.</p></div>
+        <div class="step"><div class="n">3</div><h3>Ask when it's specific</h3><p>A mood, a runtime, a person on the couch. Noomi takes it from there.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta on-night" id="join">
+    <div class="wrap">
+      <span class="noomi" aria-hidden="true"></span>
+      <h2>Tonight's answer, one tap away.</h2>
+      <p class="lede">Noomi lands on iPhone in late October. Leave your email and you'll hear the day it's out.</p>
+      <div class="bh"><script async src="https://subscribe-forms.beehiiv.com/v3/loader.js" data-beehiiv-form="7082cfde-5be8-4d81-8b94-feb2242fc34f"></script></div>
+      <p class="note">Free to use. Optional subscription for more.</p>
+      <div class="socials">
+        <a href="https://www.tiktok.com/@asknoomi" rel="noopener">TikTok <span>@asknoomi</span></a>
+        <a href="https://www.instagram.com/ask.noomi/" rel="noopener">Instagram <span>@ask.noomi</span></a>
+        <a href="https://www.youtube.com/@asknoomi" rel="noopener">YouTube <span>@asknoomi</span></a>
+      </div>
+    </div>
+  </section>
+
 </main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="noomi" aria-hidden="true"></span>Noomi</a>
+    <nav aria-label="Footer">
+      <a href="mailto:hello@noomiapp.site">hello@noomiapp.site</a>
+      <a href="legal/privacy-policy.html">Privacy</a>
+      <a href="legal/terms-of-use.html">Terms</a>
+    </nav>
+    <p class="attr">Need help, hit a bug, or want a title added? Write to hello@noomiapp.site — a real person answers. Film and TV data and images from TMDB; this product uses the TMDB API but is not endorsed or certified by TMDB. Streaming availability via JustWatch. © 2026 Noomi.</p>
+  </div>
+</footer>
+
+<script type="text/javascript" async src="https://subscribe-forms.beehiiv.com/attribution.js"></script>
 </body>
 </html>
